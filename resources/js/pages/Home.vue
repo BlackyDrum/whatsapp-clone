@@ -1,7 +1,12 @@
 <script setup lang="ts">
+import { router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
+import axios from 'axios';
+
 import Avatar from 'primevue/avatar';
+import Button from 'primevue/button';
+import Dialog from 'primevue/dialog';
 import Toast from 'primevue/toast';
 
 import { useToast } from 'primevue/usetoast';
@@ -10,8 +15,46 @@ const toast = useToast();
 
 const showContacts = ref(false);
 
+const newContactEmail = ref(null);
+const showAddNewContactDialog = ref(false);
+const isAddingNewContact = ref(false);
+
 const handleContactListToggle = () => {
     showContacts.value = !showContacts.value;
+};
+
+const handleAddNewContact = () => {
+    if (!newContactEmail.value || isAddingNewContact.value) return;
+
+    isAddingNewContact.value = true;
+
+    axios
+        .post('/contact/store', {
+            contact_email: newContactEmail.value,
+        })
+        .then((response) => {
+            toast.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: 'New Contact added',
+                life: 5000,
+            });
+
+            newContactEmail.value = null;
+
+            router.reload({ only: ['contacts'] });
+        })
+        .catch((error) => {
+            toast.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: error.response.data.message ?? error.response.data,
+                life: 5000,
+            });
+        })
+        .finally(() => {
+            isAddingNewContact.value = false;
+        });
 };
 </script>
 
@@ -64,13 +107,28 @@ const handleContactListToggle = () => {
                 </div>
             </div>
             <div v-if="showContacts" class="aside-messages h-full">
+                <div
+                    class="message cursor-pointer border-gray-700 px-4 py-3 text-gray-300 hover:bg-gray-600/50"
+                    @click="showAddNewContactDialog = true"
+                >
+                    <div class="relative flex items-center">
+                        <div class="w-1/6">
+                            <Avatar class="mr-2" icon="pi pi-user" style="background-color: #00a884" size="large" shape="circle" />
+                        </div>
+                        <div class="w-5/6">
+                            <div class="text-xl text-white" id="personName">New Contact</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-4 py-4 text-green-400">Me</div>
                 <div class="message cursor-pointer border-gray-700 px-4 py-3 text-gray-300 hover:bg-gray-600/50">
                     <div class="relative flex items-center">
                         <div class="w-1/6">
                             <Avatar :label="$page.props.auth.user.name[0]" class="mr-2" size="large" shape="circle" />
                         </div>
                         <div class="w-5/6">
-                            <div class="text-xl text-white" id="personName">{{ $page.props.auth.user.name }} (You)</div>
+                            <div class="text-xl text-white" id="personName">{{ $page.props.auth.user.name }}</div>
                             <div class="truncate text-sm" id="messagePreview">{{ $page.props.auth.user.about }}</div>
                         </div>
                         <span class="absolute right-0 top-0 mt-1 text-xs">{{ $page.props.auth.user.email }}</span>
@@ -168,4 +226,28 @@ const handleContactListToggle = () => {
             </div>
         </main>
     </div>
+
+    <!-- Add new contact Dialog -->
+    <Dialog v-model:visible="showAddNewContactDialog" :draggable="false" modal header="Add Contact" :style="{ width: '25rem' }">
+        <form @submit.prevent="handleAddNewContact">
+            <div class="relative text-gray-600 focus-within:text-gray-200">
+                <input
+                    v-model="newContactEmail"
+                    class="message-input w-full rounded-full bg-gray-700 py-3 pl-5 text-sm text-white focus:bg-gray-600/50 focus:outline-none"
+                    placeholder="Email of your contact"
+                />
+                <Button type="submit" :icon="isAddingNewContact ? 'pi pi-spin pi-spinner' : ''" label="Add Contact" class="mt-3 w-full" />
+            </div>
+        </form>
+    </Dialog>
 </template>
+
+<style>
+.p-message-error {
+    word-break: break-word;
+}
+.p-toast {
+    max-width: calc(100vw - 40px);
+    word-break: break-word;
+}
+</style>
