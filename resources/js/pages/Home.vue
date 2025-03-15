@@ -160,7 +160,15 @@ const handleAddNewContact = () => {
             </div>
             <div v-else class="aside-messages h-full"></div>
         </aside>
-        <main id="messageBody" class="bg-whatsapp relative w-full overflow-y-auto">
+        <div v-if="true" class="flex w-full bg-[#222E35]">
+            <div class="m-auto flex flex-col items-center gap-4">
+                <div class="pi pi-comments" style="font-size: 8rem"></div>
+                <div class="text-sm text-gray-200">
+                    WhatsApp Clone - <a class="underline" href="https://github.com/BlackyDrum/whatsapp-clone">Github</a>
+                </div>
+            </div>
+        </div>
+        <main v-else id="messageBody" class="bg-whatsapp relative w-full overflow-y-auto">
             <div class="main-header sticky left-0 right-0 top-0 z-40 text-gray-400">
                 <div class="flex items-center px-4 py-3">
                     <div class="flex-1">
