@@ -11,6 +11,7 @@ import Aura from '@primeuix/themes/aura';
 import 'primeicons/primeicons.css';
 import PrimeVue from 'primevue/config';
 
+import ToastService from 'primevue/toastservice';
 import Tooltip from 'primevue/tooltip';
 
 // Extend ImportMeta interface for Vite...
@@ -40,6 +41,7 @@ createInertiaApp({
                     preset: Aura,
                 },
             })
+            .use(ToastService)
             .directive('tooltip', Tooltip)
             .mount(el);
     },

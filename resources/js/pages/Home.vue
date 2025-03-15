@@ -2,6 +2,11 @@
 import { ref } from 'vue';
 
 import Avatar from 'primevue/avatar';
+import Toast from 'primevue/toast';
+
+import { useToast } from 'primevue/usetoast';
+
+const toast = useToast();
 
 const showContacts = ref(false);
 
@@ -11,6 +16,7 @@ const handleContactListToggle = () => {
 </script>
 
 <template>
+    <Toast />
     <!-- Only optimized for viewing on desktop -->
     <div class="bor flex h-screen w-full bg-black">
         <aside class="relative block overflow-y-auto border-r border-gray-800 bg-gray-200">
