@@ -13,11 +13,20 @@ import { useToast } from 'primevue/usetoast';
 
 const toast = useToast();
 
+const currentChat = ref({
+    partner: null,
+    messages: [],
+    id: null,
+});
+
 const showContacts = ref(false);
 
 const newContactEmail = ref(null);
 const showAddNewContactDialog = ref(false);
 const isAddingNewContact = ref(false);
+
+const isStartingNewChat = ref(false);
+const showChat = ref(false);
 
 const handleContactListToggle = () => {
     showContacts.value = !showContacts.value;
@@ -56,6 +65,84 @@ const handleAddNewContact = () => {
             isAddingNewContact.value = false;
         });
 };
+
+const startNewChat = (email) => {
+    if (isStartingNewChat.value) return;
+
+    isStartingNewChat.value = true;
+
+    axios
+        .post('/chat/start', {
+            email: email,
+        })
+        .then(() => {
+            showChat.value = true;
+        })
+        .catch((error) => {
+            toast.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: error.response.data.message ?? error.response.data,
+                life: 5000,
+            });
+        })
+        .finally(() => {
+            isStartingNewChat.value = false;
+        });
+};
+
+const handleChatSelection = (id) => {
+    if (currentChat.value.id === id) return;
+
+    axios
+        .get(`/chat/${id}/messages`)
+        .then((response) => {
+            currentChat.value.partner = null;
+            currentChat.value.messages = [];
+            currentChat.value.id = null;
+
+            const messages = response.data.messages;
+            currentChat.value.id = messages[0].chat_id;
+
+            currentChat.value.partner = {
+                name: messages[0].name,
+                email: messages[0].email,
+                status: messages[0].user_status,
+                last_seen: messages[0].last_seen,
+            };
+
+            for (const message of messages) {
+                currentChat.value.messages.push({
+                    message: message.message,
+                    created_at: message.created_at,
+                    user_id: message.user_id,
+                    status: message.message_status,
+                    id: message.id,
+                });
+            }
+
+            showChat.value = true;
+        })
+        .catch((error) => {
+            toast.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: error.response.data.message ?? error.response.data,
+                life: 5000,
+            });
+        });
+};
+
+function formatTimeFromTimestamp(timestamp) {
+    const date = new Date(timestamp);
+
+    // Extract hours and minutes
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+
+    // Format the time to always show two digits (e.g., "09" for minutes or hours less than 10)
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+}
 </script>
 
 <template>
@@ -144,6 +231,7 @@ const handleAddNewContact = () => {
                         v-for="contact in $page.props.contacts"
                         :key="contact.id"
                         class="message cursor-pointer border-gray-700 px-4 py-3 text-gray-300 hover:bg-gray-600/50"
+                        @click="startNewChat(contact.email)"
                     >
                         <div class="relative flex items-center">
                             <div class="w-1/6">
@@ -158,9 +246,27 @@ const handleAddNewContact = () => {
                     </div>
                 </div>
             </div>
-            <div v-else class="aside-messages h-full"></div>
+            <div v-else class="aside-messages h-full">
+                <div
+                    v-for="chat in $page.props.chats"
+                    :key="chat.id"
+                    class="message cursor-pointer border-b border-gray-700 px-4 py-3 text-gray-300 hover:bg-gray-600/50"
+                    @click="handleChatSelection(chat.id)"
+                >
+                    <div class="relative flex items-center">
+                        <div class="w-1/6">
+                            <Avatar :label="chat.partner.name[0]" class="mr-2" size="large" shape="circle" />
+                        </div>
+                        <div class="w-5/6">
+                            <div class="text-xl text-white" id="personName">{{ chat.partner.name }}</div>
+                            <div class="truncate text-sm" id="messagePreview">TODO Last Message here</div>
+                        </div>
+                        <span class="absolute right-0 top-0 mt-1 text-xs">TODO Last Message Time here</span>
+                    </div>
+                </div>
+            </div>
         </aside>
-        <div v-if="true" class="flex w-full bg-[#222E35]">
+        <div v-if="!showChat" class="flex w-full bg-[#222E35]">
             <div class="m-auto flex flex-col items-center gap-4">
                 <div class="pi pi-comments" style="font-size: 8rem"></div>
                 <div class="text-sm text-gray-200">
@@ -174,11 +280,11 @@ const handleAddNewContact = () => {
                     <div class="flex-1">
                         <div class="flex">
                             <div class="mr-4">
-                                <img class="h-11 w-11 rounded-full" />
+                                <Avatar :label="currentChat.partner.name[0]" class="mr-2" size="large" shape="circle" />
                             </div>
                             <div>
-                                <p class="text-md font-bold text-white">Josh Peters</p>
-                                <p class="text-sm text-gray-400">last seen today at 14:46</p>
+                                <p class="text-md font-bold text-white">{{ currentChat.partner.name }}</p>
+                                <p class="text-sm text-gray-400">TODO: last seen today at 14:46</p>
                             </div>
                         </div>
                     </div>
@@ -189,25 +295,18 @@ const handleAddNewContact = () => {
                 </div>
             </div>
             <div class="main-messages block h-full px-4 py-3">
-                <div class="flex justify-end">
-                    <div class="single-message user mb-4 rounded-bl-lg rounded-br-lg rounded-tl-lg px-4 py-2 text-gray-200">
-                        Hey! Thought I'd reach out to say how are you? 😊
-                        <span class="inline-block text-xs">13:00 <img class="-mt-1 ml-2 inline h-4 w-4" alt="" /></span>
-                    </div>
-                    <span
-                        ><svg class="user-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 13" width="8" height="13">
-                            <path opacity=".13" d="M5.188 1H0v11.193l6.467-8.625C7.526 2.156 6.958 1 5.188 1z"></path>
-                            <path fill="currentColor" d="M5.188 0H0v11.193l6.467-8.625C7.526 1.156 6.958 0 5.188 0z"></path></svg
-                    ></span>
-                </div>
-                <div class="flex">
-                    <span
-                        ><svg class="incoming-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 13" width="8" height="13">
-                            <path opacity=".13" d="M5.188 1H0v11.193l6.467-8.625C7.526 2.156 6.958 1 5.188 1z"></path>
-                            <path fill="currentColor" d="M5.188 0H0v11.193l6.467-8.625C7.526 1.156 6.958 0 5.188 0z"></path></svg
-                    ></span>
-                    <div class="single-message mb-4 rounded-bl-lg rounded-br-lg rounded-tr-lg px-4 py-2 text-gray-200">
-                        Hey Pal! I'm doing good, how have you been? Cold at the moment aye!
+                <div
+                    v-for="message in currentChat.messages"
+                    :key="message.id"
+                    class="flex"
+                    :class="{ 'justify-end': message.user_id === $page.props.auth.user.id }"
+                >
+                    <div
+                        class="single-message mb-4 rounded-bl-lg rounded-br-lg rounded-tl-lg px-4 py-2 text-gray-200"
+                        :class="{ user: message.user_id === $page.props.auth.user.id }"
+                    >
+                        {{ message.message }}
+                        <span class="inline-block text-xs">{{ formatTimeFromTimestamp(message.created_at) }}</span>
                     </div>
                 </div>
             </div>
