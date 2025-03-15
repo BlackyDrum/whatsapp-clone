@@ -11,6 +11,8 @@ import Aura from '@primeuix/themes/aura';
 import 'primeicons/primeicons.css';
 import PrimeVue from 'primevue/config';
 
+import Tooltip from 'primevue/tooltip';
+
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
     interface ImportMetaEnv {
@@ -38,6 +40,7 @@ createInertiaApp({
                     preset: Aura,
                 },
             })
+            .directive('tooltip', Tooltip)
             .mount(el);
     },
     progress: {

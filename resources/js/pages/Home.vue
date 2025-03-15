@@ -1,18 +1,33 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { ref } from 'vue';
+
+import Avatar from 'primevue/avatar';
+
+const showContacts = ref(false);
+
+const handleContactListToggle = () => {
+    showContacts.value = !showContacts.value;
+};
+</script>
 
 <template>
     <!-- Only optimized for viewing on desktop -->
     <div class="bor flex h-screen w-full bg-black">
         <aside class="relative block overflow-y-auto border-r border-gray-800 bg-gray-200">
             <div class="aside-header sticky left-0 right-0 top-0 z-40 text-gray-400">
-                <div class="flex items-center px-4 py-3">
-                    <div class="flex-1">
-                        <img class="h-11 w-11 rounded-full" />
+                <div class="flex items-center px-4 py-6">
+                    <div class="text-2xl font-bold text-white">{{ showContacts ? 'New Chat' : 'Chats' }}</div>
+                    <div v-if="showContacts" class="flex-1 text-right">
+                        <span class="pi pi-arrow-left cursor-pointer" v-tooltip="'Back'" @click="handleContactListToggle"></span>
                     </div>
-                    <div class="flex-1 text-right">
-                        <span class="pi pi-face-smile mr-4 inline h-6 w-6 cursor-pointer"> </span>
-                        <span class="pi pi-comment mr-3 inline h-6 w-6 cursor-pointer"> </span>
-                        <span class="pi pi-ellipsis-v inline h-6 w-6 cursor-pointer"> </span>
+                    <div v-else class="flex-1 text-right">
+                        <span
+                            class="pi pi-comment mr-6 inline cursor-pointer"
+                            v-tooltip="'New Chat'"
+                            style="font-size: large"
+                            @click="handleContactListToggle"
+                        ></span>
+                        <span class="pi pi-ellipsis-v inline cursor-pointer" style="font-size: large"></span>
                     </div>
                 </div>
                 <div class="search-bar w-full px-4 py-2">
@@ -42,7 +57,41 @@
                     </form>
                 </div>
             </div>
-            <div id="mainMessages" class="aside-messages h-full"></div>
+            <div v-if="showContacts" class="aside-messages h-full">
+                <div class="message cursor-pointer border-gray-700 px-4 py-3 text-gray-300 hover:bg-gray-600/50">
+                    <div class="relative flex items-center">
+                        <div class="w-1/6">
+                            <Avatar :label="$page.props.auth.user.name[0]" class="mr-2" size="large" shape="circle" />
+                        </div>
+                        <div class="w-5/6">
+                            <div class="text-xl text-white" id="personName">{{ $page.props.auth.user.name }} (You)</div>
+                            <div class="truncate text-sm" id="messagePreview">{{ $page.props.auth.user.about }}</div>
+                        </div>
+                        <span class="absolute right-0 top-0 mt-1 text-xs">{{ $page.props.auth.user.email }}</span>
+                    </div>
+                </div>
+
+                <div class="px-4 py-6 text-green-400">My Contacts</div>
+                <div class="flex-col divide-y-2">
+                    <div
+                        v-for="contact in $page.props.contacts"
+                        :key="contact.id"
+                        class="message cursor-pointer border-gray-700 px-4 py-3 text-gray-300 hover:bg-gray-600/50"
+                    >
+                        <div class="relative flex items-center">
+                            <div class="w-1/6">
+                                <Avatar :label="contact.name[0]" class="mr-2" size="large" shape="circle" />
+                            </div>
+                            <div class="w-5/6">
+                                <div class="text-xl text-white" id="personName">{{ contact.name }}</div>
+                                <div class="truncate text-sm" id="messagePreview">{{ contact.about }}</div>
+                            </div>
+                            <span class="absolute right-0 top-0 mt-1 text-xs">{{ contact.email }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div v-else class="aside-messages h-full"></div>
         </aside>
         <main id="messageBody" class="bg-whatsapp relative w-full overflow-y-auto">
             <div class="main-header sticky left-0 right-0 top-0 z-40 text-gray-400">
