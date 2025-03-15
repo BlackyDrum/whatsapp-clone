@@ -39,6 +39,9 @@ createInertiaApp({
             .use(PrimeVue, {
                 theme: {
                     preset: Aura,
+                    options: {
+                        darkModeSelector: '.primevue-dark',
+                    },
                 },
             })
             .use(ToastService)
