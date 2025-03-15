@@ -91,25 +91,11 @@ html {
     }
 }
 
-/* width */
-::-webkit-scrollbar {
-    width: 8px;
+* {
+    scrollbar-width: thin; /* Options: auto, thin, none */
+    scrollbar-color: #394045 #131c21; /* thumb color | track color */
 }
 
-/* Track */
-::-webkit-scrollbar-track {
-    background: #131c21;
-}
-
-/* Handle */
-::-webkit-scrollbar-thumb {
-    background: #394045;
-}
-
-/* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
-    background: #555;
-}
 aside {
     width: 40rem;
 }

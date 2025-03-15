@@ -64,10 +64,10 @@ const handleAddNewContact = () => {
     <!-- Source Code for frontend: https://codepen.io/macridgway23/pen/rNMgRgY -->
 
     <!-- Only optimized for viewing on desktop -->
-    <div class="bor flex h-screen w-full bg-black">
+    <div class="flex h-screen w-full bg-black">
         <aside class="relative block overflow-y-auto border-r border-gray-800 bg-gray-200">
             <div class="aside-header sticky left-0 right-0 top-0 z-40 text-gray-400">
-                <div class="flex items-center px-4 py-6">
+                <div class="flex items-center bg-[#131C21] px-4 py-6">
                     <div class="text-2xl font-bold text-white">{{ showContacts ? 'New Chat' : 'Chats' }}</div>
                     <div v-if="showContacts" class="flex-1 text-right">
                         <span class="pi pi-arrow-left cursor-pointer" v-tooltip="'Back'" @click="handleContactListToggle"></span>
