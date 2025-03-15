@@ -34,8 +34,19 @@ class HomeController extends Controller
             ->map(function ($chat) {
                 $partnerId = $chat->user_one === Auth::id() ? $chat->user_two : $chat->user_one;
                 $chat->partner = User::select(['name', 'email', 'id'])->find($partnerId);
+
+                $lastMessage = Message::query()
+                    ->where('chat_id', $chat->id)
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+
+                $chat->last_message = $lastMessage->message;
+                $chat->last_message_created_at = $lastMessage->created_at;
+
                 return $chat;
             });
+
+        Log::info($chats);
 
         return Inertia::render('Home', [
             'contacts' => $contacts,

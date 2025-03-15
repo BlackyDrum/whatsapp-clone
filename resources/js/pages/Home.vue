@@ -143,6 +143,31 @@ function formatTimeFromTimestamp(timestamp) {
     // Format the time to always show two digits (e.g., "09" for minutes or hours less than 10)
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
 }
+
+function formatTimestamp(timestamp) {
+    const date = new Date(timestamp);
+    const now = new Date();
+
+    // Check if the timestamp is from today
+    if (date.toDateString() === now.toDateString()) {
+        // If today, return just the time (HH:mm)
+        const hours = date.getHours();
+        const minutes = date.getMinutes();
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    }
+
+    // Check if the timestamp is within the last 4 days
+    const daysDifference = Math.floor((now - date) / (1000 * 3600 * 24));
+    if (daysDifference <= 4) {
+        // If within 4 days, return the day of the week
+        const options = { weekday: 'long' };
+        return date.toLocaleDateString('en-US', options); // You can adjust the locale if needed
+    }
+
+    // If older than 4 days, return the full date (YYYY-MM-DD)
+    const fullDate = date.toISOString().split('T')[0]; // Extract just the date part
+    return fullDate;
+}
 </script>
 
 <template>
@@ -259,9 +284,9 @@ function formatTimeFromTimestamp(timestamp) {
                         </div>
                         <div class="w-5/6">
                             <div class="text-xl text-white" id="personName">{{ chat.partner.name }}</div>
-                            <div class="truncate text-sm" id="messagePreview">TODO Last Message here</div>
+                            <div class="truncate text-sm" id="messagePreview">{{ chat.last_message }}</div>
                         </div>
-                        <span class="absolute right-0 top-0 mt-1 text-xs">TODO Last Message Time here</span>
+                        <span class="absolute right-0 top-0 mt-1 text-xs">{{ formatTimestamp(chat.last_message_created_at) }}</span>
                     </div>
                 </div>
             </div>
