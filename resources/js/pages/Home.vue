@@ -60,6 +60,9 @@ const handleAddNewContact = () => {
 
 <template>
     <Toast />
+
+    <!-- Source Code for frontend: https://codepen.io/macridgway23/pen/rNMgRgY -->
+
     <!-- Only optimized for viewing on desktop -->
     <div class="bor flex h-screen w-full bg-black">
         <aside class="relative block overflow-y-auto border-r border-gray-800 bg-gray-200">
