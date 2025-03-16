@@ -348,7 +348,7 @@ function formatTimestamp(timestamp: Date): string {
                     class="message cursor-pointer border-b border-gray-700 px-4 py-3 text-gray-300 hover:bg-gray-600/50"
                     @click="handleChatSelection(chat.id)"
                 >
-                    <div class="relative flex items-center">
+                    <div class="relative flex select-none items-center">
                         <div class="w-1/6">
                             <Avatar :label="chat.partner.name[0]" class="mr-2" size="large" shape="circle" />
                         </div>
@@ -401,7 +401,7 @@ function formatTimestamp(timestamp: Date): string {
                         :class="{ user: message.user_id === $page.props.auth.user.id }"
                     >
                         {{ message.message }}
-                        <span class="inline-block text-xs text-gray-200/70">{{ formatTimeFromTimestamp(message.created_at) }}</span>
+                        <span class="inline-block select-none text-xs text-gray-200/70">{{ formatTimeFromTimestamp(message.created_at) }}</span>
                     </div>
                 </div>
             </div>
