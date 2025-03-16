@@ -247,7 +247,9 @@ function formatTimestamp(timestamp: Date): string {
 
     <!-- Only optimized for viewing on desktop -->
     <div class="flex h-screen w-full bg-black">
-        <aside class="relative flex flex-col overflow-y-auto border-r border-gray-800 bg-gray-200">
+        <aside
+            class="relative flex w-[22rem] shrink-0 flex-col overflow-y-auto border-r border-gray-800 bg-gray-200 md:w-[30rem] lg:w-[35rem] xl:w-[40rem]"
+        >
             <div class="aside-header sticky left-0 right-0 top-0 z-40 text-gray-400">
                 <div class="flex items-center bg-[#131C21] px-4 py-6">
                     <div class="text-2xl font-bold text-white">{{ showContacts ? 'New Chat' : 'Chats' }}</div>
@@ -372,7 +374,7 @@ function formatTimestamp(timestamp: Date): string {
         <main v-else ref="messageBody" id="messageBody" class="bg-whatsapp relative flex w-full flex-col overflow-y-auto">
             <div class="main-header sticky left-0 right-0 top-0 z-40 text-gray-400">
                 <div class="flex items-center px-4 py-3">
-                    <div class="flex-1">
+                    <div class="flex-1 truncate">
                         <div class="flex">
                             <div class="mr-4">
                                 <Avatar :label="currentChat.partner?.name[0]" class="mr-2" size="large" shape="circle" />
