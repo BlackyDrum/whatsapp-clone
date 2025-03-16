@@ -46,6 +46,9 @@ onBeforeMount(() => {
             chat.last_message = e.message.message;
             chat.last_message_created_at = e.message.created_at;
 
+            page.props.chats.splice(page.props.chats.indexOf(chat), 1);
+            page.props.chats.unshift(chat);
+
             if (currentChat.value.id === e.message.chat_id) {
                 currentChat.value.messages.push(e.message);
 
@@ -174,6 +177,10 @@ const sendMessage = () => {
             const chat = page.props.chats.find((chat: Chat) => chat.id === currentChat.value.id);
             chat.last_message = response.data.message.message;
             chat.last_message_created_at = response.data.message.created_at;
+
+            // Move the chat to the first position in the array
+            page.props.chats.splice(page.props.chats.indexOf(chat), 1);
+            page.props.chats.unshift(chat);
         })
         .catch((error) => {
             toast.add({
