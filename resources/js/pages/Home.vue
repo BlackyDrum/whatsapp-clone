@@ -109,11 +109,7 @@ const handleChatSelection = (id: number) => {
 
             currentChat.value.id = response.data.chat_id;
             currentChat.value.partner = response.data.partner;
-
-            const messages = response.data.messages;
-            for (const message of messages) {
-                currentChat.value.messages.push(message);
-            }
+            currentChat.value.messages.push(...response.data.messages);
 
             showChat.value = true;
         })
