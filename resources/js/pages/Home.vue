@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Chat } from '@/types';
 import { router, usePage } from '@inertiajs/vue3';
-import { nextTick, onBeforeMount, Ref, ref } from 'vue';
+import { nextTick, onBeforeMount, onBeforeUnmount, Ref, ref } from 'vue';
 
 import axios from 'axios';
 
@@ -73,6 +73,14 @@ function setupMessageListener(e: any) {
         });
     }
 }
+
+onBeforeUnmount(() => {
+    window.Echo.leave(`chat.start.user.${page.props.auth.user.id}`);
+
+    for (const chat of page.props.chats) {
+        window.Echo.leave(`chat.${chat.id}`);
+    }
+});
 
 const handleContactListToggle = () => {
     showContacts.value = !showContacts.value;
