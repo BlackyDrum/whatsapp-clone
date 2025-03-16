@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\MessageStatus;
 use App\Models\Chat;
 use App\Models\Message;
 use App\Models\User;
 use App\Models\UserHasContact;
-use App\Models\UserInChat;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -173,7 +173,7 @@ class HomeController extends Controller
                 'user_id' => Auth::id(),
                 'message' => $validated['message'],
                 'chat_id' => $chat->id,
-                'status' => 'sent'
+                'status' => MessageStatus::Sent
             ])
             ->only(['id', 'message', 'created_at', 'status', 'user_id']);
 
