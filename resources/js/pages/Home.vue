@@ -183,7 +183,7 @@ function formatTimestamp(timestamp: Date): string {
                     </div>
                     <div v-else class="flex-1 text-right">
                         <span
-                            class="pi pi-comment mr-6 inline cursor-pointer"
+                            class="pi pi-pen-to-square mr-6 inline cursor-pointer"
                             v-tooltip="'New Chat'"
                             style="font-size: large"
                             @click="handleContactListToggle"
