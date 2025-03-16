@@ -140,7 +140,6 @@ class HomeController extends Controller
 
         $messages = Message::query()
             ->where('chat_id', $chat->id)
-            ->join('users', 'users.id', 'messages.user_id')
             ->select(['messages.user_id', 'messages.created_at', 'messages.message', 'messages.status', 'messages.id'])
             ->orderBy('messages.created_at')
             ->get();
