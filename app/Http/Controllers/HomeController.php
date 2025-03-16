@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageSent;
 use App\MessageStatus;
 use App\Models\Chat;
 use App\Models\Message;
@@ -175,7 +176,9 @@ class HomeController extends Controller
                 'chat_id' => $chat->id,
                 'status' => MessageStatus::Sent
             ])
-            ->only(['id', 'message', 'created_at', 'status', 'user_id']);
+            ->only(['id', 'message', 'created_at', 'status', 'user_id', 'chat_id']);
+
+        broadcast(new MessageSent($message))->toOthers();
 
         return response()->json(['message' => $message]);
     }

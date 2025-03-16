@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Chat } from '@/types';
 import { router, usePage } from '@inertiajs/vue3';
-import { nextTick, Ref, ref } from 'vue';
+import { nextTick, onBeforeMount, Ref, ref } from 'vue';
 
 import axios from 'axios';
 
@@ -34,6 +34,28 @@ const currentMessage = ref(null);
 
 const messageInput = ref();
 const messageBody = ref();
+
+onBeforeMount(() => {
+    axios.defaults.headers.common['X-Socket-ID'] = window.Echo.socketId();
+
+    for (const chat of page.props.chats) {
+        window.Echo.private(`chat.${chat.id}`).listen('MessageSent', (e: any) => {
+            if (e.message.user_id === page.props.auth.user.id) return;
+
+            const chat = page.props.chats.find((chat: Chat) => chat.id === e.message.chat_id);
+            chat.last_message = e.message.message;
+            chat.last_message_created_at = e.message.created_at;
+
+            if (currentChat.value.id === e.message.chat_id) {
+                currentChat.value.messages.push(e.message);
+
+                nextTick(() => {
+                    scrollToBottom();
+                });
+            }
+        });
+    }
+});
 
 const handleContactListToggle = () => {
     showContacts.value = !showContacts.value;
