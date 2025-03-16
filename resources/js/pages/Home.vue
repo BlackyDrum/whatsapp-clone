@@ -149,7 +149,7 @@ const sendMessage = () => {
         .then((response) => {
             currentChat.value.messages.push(response.data.message);
 
-            const chat = page.props.chats.find((chat) => chat.id === currentChat.value.id);
+            const chat = page.props.chats.find((chat: Chat) => chat.id === currentChat.value.id);
             chat.last_message = response.data.message.message;
             chat.last_message_created_at = response.data.message.created_at;
         })
