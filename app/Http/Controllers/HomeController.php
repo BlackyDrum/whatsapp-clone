@@ -100,7 +100,7 @@ class HomeController extends Controller
             ->exists();
 
         if (!$hasContact)
-            return response()->json(['message' => 'The selected contact email is invalid.'], 400);
+            return response()->json(['message' => 'You do not have permission to interact with this contact.'], 403);
 
         // Check if there is already a chat between two users
         $chat = Chat::query()
@@ -130,13 +130,13 @@ class HomeController extends Controller
             $chat = Chat::query()
                 ->findOrFail($id);
         } catch (ModelNotFoundException) {
-            return response()->json(['message' => 'The selected chat is invalid.'], 400);
+            return response()->json(['message' => 'Chat not found.'], 404);
         }
 
         $canAccessChat = $chat->user_one === Auth::id() || $chat->user_two === Auth::id();
 
         if (!$canAccessChat)
-            return response()->json(['message' => 'The selected chat is invalid.'], 400);
+            return response()->json(['message' => 'You are not authorized to access this chat.'], 403);
 
         $parnterId = $chat->user_one === Auth::id() ? $chat->user_two : $chat->user_one;
 
