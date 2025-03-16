@@ -46,8 +46,6 @@ class HomeController extends Controller
                 return $chat;
             });
 
-        Log::info($chats);
-
         return Inertia::render('Home', [
             'contacts' => $contacts,
             'chats' => $chats
