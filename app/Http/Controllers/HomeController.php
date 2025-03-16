@@ -124,7 +124,7 @@ class HomeController extends Controller
         return response()->json(['chat_id' => $chat->id, 'created' => $chat->wasRecentlyCreated]);
     }
 
-    public function getMessages(Request $request, string $id)
+    public function getMessages(Request $request, int $id)
     {
         try {
             $chat = Chat::query()
@@ -152,5 +152,31 @@ class HomeController extends Controller
             ->first();
 
         return response()->json(['messages' => $messages, 'partner' => $partnerData, 'chat_id' => $chat->id]);
+    }
+
+    public function sendMessage(Request $request)
+    {
+        $validated = $request->validate([
+            'chat_id' => 'required|numeric|exists:chats,id',
+            'message' => 'required|string|max:1024'
+        ]);
+
+        $chat = Chat::query()->find($validated['chat_id']);
+
+        $canAccessChat = $chat->user_one === Auth::id() || $chat->user_two === Auth::id();
+
+        if (!$canAccessChat)
+            return response()->json(['message' => 'You are not authorized to access this chat.'], 403);
+
+        $message = Message::query()
+            ->create([
+                'user_id' => Auth::id(),
+                'message' => $validated['message'],
+                'chat_id' => $chat->id,
+                'status' => 'sent'
+            ])
+            ->only(['id', 'message', 'created_at', 'status', 'user_id']);
+
+        return response()->json(['message' => $message]);
     }
 }

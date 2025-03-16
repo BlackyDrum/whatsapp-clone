@@ -11,6 +11,7 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/chat/start', [HomeController::class, 'startChat'])->name('chat.start');
     Route::get('/chat/{id}/messages', [HomeController::class, 'getMessages'])->name('chat.messages.get');
+    Route::post('/chat/message', [HomeController::class, 'sendMessage'])->name('chat.message.send');
 });
 
 require __DIR__ . '/auth.php';

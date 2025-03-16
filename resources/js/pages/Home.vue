@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Chat } from '@/types';
 import { router } from '@inertiajs/vue3';
-import { Ref, ref } from 'vue';
+import { nextTick, Ref, ref } from 'vue';
 
 import axios from 'axios';
 
@@ -27,6 +27,12 @@ const currentChat: Ref<Chat> = ref({
     messages: [],
     id: null,
 });
+
+const isSendingMessage = ref(false);
+const currentMessage = ref(null);
+
+const messageInput = ref();
+const messageBody = ref();
 
 const handleContactListToggle = () => {
     showContacts.value = !showContacts.value;
@@ -112,6 +118,12 @@ const handleChatSelection = (id: number) => {
             currentChat.value.messages.push(...response.data.messages);
 
             showChat.value = true;
+
+            nextTick(() => {
+                messageInput.value.focus();
+
+                scrollToBottom();
+            });
         })
         .catch((error) => {
             toast.add({
@@ -122,6 +134,44 @@ const handleChatSelection = (id: number) => {
             });
         });
 };
+
+const sendMessage = () => {
+    if (isSendingMessage.value || !currentMessage.value) return;
+
+    isSendingMessage.value = true;
+
+    axios
+        .post('/chat/message', {
+            chat_id: currentChat.value.id,
+            message: currentMessage.value,
+        })
+        .then((response) => {
+            currentChat.value.messages.push(response.data.message);
+        })
+        .catch((error) => {
+            toast.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: error.response.data.message ?? error.response.data,
+                life: 5000,
+            });
+        })
+        .finally(() => {
+            isSendingMessage.value = false;
+
+            currentMessage.value = null;
+
+            nextTick(() => {
+                messageInput.value.focus();
+
+                scrollToBottom();
+            });
+        });
+};
+
+function scrollToBottom() {
+    messageBody.value.scrollTo(0, messageBody.value.scrollHeight);
+}
 
 function formatTimeFromTimestamp(timestamp: Date) {
     const date = new Date(timestamp);
@@ -170,7 +220,7 @@ function formatTimestamp(timestamp: Date): string {
 
     <!-- Only optimized for viewing on desktop -->
     <div class="flex h-screen w-full bg-black">
-        <aside class="relative block overflow-y-auto border-r border-gray-800 bg-gray-200">
+        <aside class="relative flex flex-col overflow-y-auto border-r border-gray-800 bg-gray-200">
             <div class="aside-header sticky left-0 right-0 top-0 z-40 text-gray-400">
                 <div class="flex items-center bg-[#131C21] px-4 py-6">
                     <div class="text-2xl font-bold text-white">{{ showContacts ? 'New Chat' : 'Chats' }}</div>
@@ -214,7 +264,7 @@ function formatTimestamp(timestamp: Date): string {
                     </form>
                 </div>
             </div>
-            <div v-if="showContacts" class="aside-messages h-full">
+            <div v-if="showContacts" class="aside-messages grow">
                 <div
                     class="message cursor-pointer border-gray-700 px-4 py-3 text-gray-300 hover:bg-gray-600/50"
                     @click="showAddNewContactDialog = true"
@@ -264,7 +314,7 @@ function formatTimestamp(timestamp: Date): string {
                     </div>
                 </div>
             </div>
-            <div v-else class="aside-messages h-full">
+            <div v-else class="aside-messages grow">
                 <div
                     v-for="chat in $page.props.chats"
                     :key="chat.id"
@@ -292,7 +342,7 @@ function formatTimestamp(timestamp: Date): string {
                 </div>
             </div>
         </div>
-        <main v-else id="messageBody" class="bg-whatsapp relative w-full overflow-y-auto">
+        <main v-else ref="messageBody" id="messageBody" class="bg-whatsapp relative flex w-full flex-col overflow-y-auto">
             <div class="main-header sticky left-0 right-0 top-0 z-40 text-gray-400">
                 <div class="flex items-center px-4 py-3">
                     <div class="flex-1">
@@ -312,7 +362,7 @@ function formatTimestamp(timestamp: Date): string {
                     </div>
                 </div>
             </div>
-            <div class="main-messages block h-full px-4 py-3">
+            <div class="main-messages block grow px-4 py-3">
                 <div
                     v-for="message in currentChat.messages"
                     :key="message.id"
@@ -336,19 +386,22 @@ function formatTimestamp(timestamp: Date): string {
                     </div>
                     <div class="flex-grow">
                         <div class="w-full px-4 py-2">
-                            <form @submit.prevent>
+                            <form @submit.prevent="sendMessage">
                                 <div class="relative text-gray-600 focus-within:text-gray-200">
                                     <input
+                                        ref="messageInput"
                                         class="message-input w-full rounded-full bg-gray-700 py-3 pl-5 text-sm text-white focus:bg-gray-600/50 focus:outline-none"
                                         placeholder="Type a message"
                                         autocomplete="off"
+                                        v-model="currentMessage"
+                                        :disabled="isSendingMessage"
                                     />
                                 </div>
                             </form>
                         </div>
                     </div>
                     <div class="flex-none text-right">
-                        <span class="pi pi-microphone inline cursor-pointer" style="font-size: x-large"> </span>
+                        <span :class="{ 'pi pi-spin pi-spinner': isSendingMessage }" class="inline cursor-pointer" style="font-size: x-large"> </span>
                     </div>
                 </div>
             </div>
