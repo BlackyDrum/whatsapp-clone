@@ -1,10 +1,11 @@
 <?php
 
 use App\Http\Controllers\HomeController;
+use App\Http\Middleware\UpdateUserLastSeen;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', UpdateUserLastSeen::class])->group(function () {
     Route::get('/', [HomeController::class, 'show'])->name('home');
 
     Route::post('/contact/store', [HomeController::class, 'storeContact'])->name('contact.store');
