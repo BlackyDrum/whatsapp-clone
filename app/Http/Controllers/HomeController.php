@@ -44,7 +44,9 @@ class HomeController extends Controller
                 $chat->last_message_created_at = $lastMessage?->created_at;
 
                 return $chat;
-            });
+            })
+            ->sortByDesc('last_message_created_at')
+            ->values();
 
         return Inertia::render('Home', [
             'contacts' => $contacts,
