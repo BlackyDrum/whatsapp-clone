@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { Chat } from '@/types';
 import { router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Ref, ref } from 'vue';
 
 import axios from 'axios';
 
@@ -13,12 +14,6 @@ import { useToast } from 'primevue/usetoast';
 
 const toast = useToast();
 
-const currentChat = ref({
-    partner: null,
-    messages: [],
-    id: null,
-});
-
 const showContacts = ref(false);
 
 const newContactEmail = ref(null);
@@ -27,6 +22,11 @@ const isAddingNewContact = ref(false);
 
 const isStartingNewChat = ref(false);
 const showChat = ref(false);
+const currentChat: Ref<Chat> = ref({
+    partner: null,
+    messages: [],
+    id: null,
+});
 
 const handleContactListToggle = () => {
     showContacts.value = !showContacts.value;
@@ -41,7 +41,7 @@ const handleAddNewContact = () => {
         .post('/contact/store', {
             contact_email: newContactEmail.value,
         })
-        .then((response) => {
+        .then(() => {
             toast.add({
                 severity: 'success',
                 summary: 'Success',
@@ -66,7 +66,7 @@ const handleAddNewContact = () => {
         });
 };
 
-const startNewChat = (email) => {
+const startNewChat = (email: string) => {
     if (isStartingNewChat.value) return;
 
     isStartingNewChat.value = true;
@@ -97,7 +97,7 @@ const startNewChat = (email) => {
         });
 };
 
-const handleChatSelection = (id) => {
+const handleChatSelection = (id: number) => {
     if (currentChat.value.id === id) return;
 
     axios
@@ -127,7 +127,7 @@ const handleChatSelection = (id) => {
         });
 };
 
-function formatTimeFromTimestamp(timestamp) {
+function formatTimeFromTimestamp(timestamp: Date) {
     const date = new Date(timestamp);
 
     // Extract hours and minutes
@@ -138,9 +138,13 @@ function formatTimeFromTimestamp(timestamp) {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
 }
 
-function formatTimestamp(timestamp) {
+function formatTimestamp(timestamp: Date): string {
     const date = new Date(timestamp);
     const now = new Date();
+
+    // Convert both to timestamps (number)
+    const nowTimestamp: number = now.getTime();
+    const dateTimestamp: number = date.getTime();
 
     // Check if the timestamp is from today
     if (date.toDateString() === now.toDateString()) {
@@ -151,11 +155,10 @@ function formatTimestamp(timestamp) {
     }
 
     // Check if the timestamp is within the last 4 days
-    const daysDifference = Math.floor((now - date) / (1000 * 3600 * 24));
+    const daysDifference = Math.floor((nowTimestamp - dateTimestamp) / (1000 * 3600 * 24));
     if (daysDifference <= 4) {
         // If within 4 days, return the day of the week
-        const options = { weekday: 'long' };
-        return date.toLocaleDateString('en-US', options); // You can adjust the locale if needed
+        return date.toLocaleDateString('en-US', { weekday: 'long' });
     }
 
     // If older than 4 days, return the full date (YYYY-MM-DD)
@@ -299,11 +302,11 @@ function formatTimestamp(timestamp) {
                     <div class="flex-1">
                         <div class="flex">
                             <div class="mr-4">
-                                <Avatar :label="currentChat.partner.name[0]" class="mr-2" size="large" shape="circle" />
+                                <Avatar :label="currentChat.partner?.name[0]" class="mr-2" size="large" shape="circle" />
                             </div>
                             <div>
-                                <p class="text-md font-bold text-white">{{ currentChat.partner.name }}</p>
-                                <p class="text-sm text-gray-400">last seen {{ formatTimeFromTimestamp(currentChat.partner.last_seen) }}</p>
+                                <p class="text-md font-bold text-white">{{ currentChat.partner?.name }}</p>
+                                <p class="text-sm text-gray-400">last seen {{ formatTimestamp(currentChat.partner?.last_seen || new Date()) }}</p>
                             </div>
                         </div>
                     </div>
