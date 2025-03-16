@@ -38,27 +38,41 @@ const messageBody = ref();
 onBeforeMount(() => {
     axios.defaults.headers.common['X-Socket-ID'] = window.Echo.socketId();
 
+    // Handle incoming messages
     for (const chat of page.props.chats) {
         window.Echo.private(`chat.${chat.id}`).listen('MessageSent', (e: any) => {
-            if (e.message.user_id === page.props.auth.user.id) return;
-
-            const chat = page.props.chats.find((chat: Chat) => chat.id === e.message.chat_id);
-            chat.last_message = e.message.message;
-            chat.last_message_created_at = e.message.created_at;
-
-            page.props.chats.splice(page.props.chats.indexOf(chat), 1);
-            page.props.chats.unshift(chat);
-
-            if (currentChat.value.id === e.message.chat_id) {
-                currentChat.value.messages.push(e.message);
-
-                nextTick(() => {
-                    scrollToBottom();
-                });
-            }
+            setupMessageListener(e);
         });
     }
+
+    // Handle incoming chat creations from other users
+    window.Echo.private(`chat.start.user.${page.props.auth.user.id}`).listen('ChatStarted', (e: any) => {
+        router.reload({ only: ['chats'] });
+
+        window.Echo.private(`chat.${e.chat.id}`).listen('MessageSent', (e: any) => {
+            setupMessageListener(e);
+        });
+    });
 });
+
+function setupMessageListener(e: any) {
+    if (e.message.user_id === page.props.auth.user.id) return;
+
+    const chat = page.props.chats.find((chat: Chat) => chat.id === e.message.chat_id);
+    chat.last_message = e.message.message;
+    chat.last_message_created_at = e.message.created_at;
+
+    page.props.chats.splice(page.props.chats.indexOf(chat), 1);
+    page.props.chats.unshift(chat);
+
+    if (currentChat.value.id === e.message.chat_id) {
+        currentChat.value.messages.push(e.message);
+
+        nextTick(() => {
+            scrollToBottom();
+        });
+    }
+}
 
 const handleContactListToggle = () => {
     showContacts.value = !showContacts.value;
@@ -110,7 +124,13 @@ const startNewChat = (email: string) => {
         .then((response) => {
             showChat.value = true;
 
-            if (response.data.created) router.reload({ only: ['chats'] });
+            if (response.data.created) {
+                router.reload({ only: ['chats'] });
+
+                window.Echo.private(`chat.${response.data.chat_id}`).listen('MessageSent', (e: any) => {
+                    setupMessageListener(e);
+                });
+            }
 
             handleChatSelection(response.data.chat_id);
 
@@ -365,7 +385,9 @@ function formatTimestamp(timestamp: Date): string {
                             <div class="text-xl text-white" id="personName">{{ chat.partner.name }}</div>
                             <div class="truncate text-sm" id="messagePreview">{{ chat.last_message }}</div>
                         </div>
-                        <span class="absolute right-0 top-0 mt-1 text-xs">{{ formatTimestamp(chat.last_message_created_at) }}</span>
+                        <span class="absolute right-0 top-0 mt-1 text-xs">{{
+                            chat.last_message_created_at ? formatTimestamp(chat.last_message_created_at) : ''
+                        }}</span>
                     </div>
                 </div>
             </div>

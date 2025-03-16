@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ChatStarted;
 use App\Events\MessageSent;
 use App\MessageStatus;
 use App\Models\Chat;
@@ -120,6 +121,8 @@ class HomeController extends Controller
                 'user_one' => Auth::id(),
                 'user_two' => $partner['id']
             ]);
+
+            broadcast(new ChatStarted($chat))->toOthers();
         }
 
         return response()->json(['chat_id' => $chat->id, 'created' => $chat->wasRecentlyCreated]);
