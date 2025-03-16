@@ -324,7 +324,7 @@ function formatTimestamp(timestamp: Date): string {
                         :class="{ user: message.user_id === $page.props.auth.user.id }"
                     >
                         {{ message.message }}
-                        <span class="inline-block text-xs">{{ formatTimeFromTimestamp(message.created_at) }}</span>
+                        <span class="inline-block text-xs text-gray-200/70">{{ formatTimeFromTimestamp(message.created_at) }}</span>
                     </div>
                 </div>
             </div>
