@@ -121,7 +121,7 @@ class HomeController extends Controller
             ]);
         }
 
-        return response()->json(['chat_id' => $chat->id]);
+        return response()->json(['chat_id' => $chat->id, 'created' => $chat->wasRecentlyCreated]);
     }
 
     public function getMessages(Request $request, string $id)

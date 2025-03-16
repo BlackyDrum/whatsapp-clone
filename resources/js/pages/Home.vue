@@ -78,9 +78,11 @@ const startNewChat = (email) => {
         .then((response) => {
             showChat.value = true;
 
-            router.reload({ only: ['chats'] });
+            if (response.data.created) router.reload({ only: ['chats'] });
 
             handleChatSelection(response.data.chat_id);
+
+            showContacts.value = false;
         })
         .catch((error) => {
             toast.add({
