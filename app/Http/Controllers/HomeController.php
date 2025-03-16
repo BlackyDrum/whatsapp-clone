@@ -40,8 +40,8 @@ class HomeController extends Controller
                     ->orderBy('created_at', 'desc')
                     ->first();
 
-                $chat->last_message = $lastMessage->message;
-                $chat->last_message_created_at = $lastMessage->created_at;
+                $chat->last_message = $lastMessage?->message;
+                $chat->last_message_created_at = $lastMessage?->created_at;
 
                 return $chat;
             });
@@ -102,13 +102,26 @@ class HomeController extends Controller
         if (!$hasContact)
             return response()->json(['message' => 'The selected contact email is invalid.'], 400);
 
-        // TODO: Check if a conversation between two users already exist
-
+        // Check if there is already a chat between two users
         $chat = Chat::query()
-            ->create([
+            ->where(function ($query) use ($partner) {
+                $query->where('user_one', Auth::id())
+                    ->where('user_two', $partner['id']);
+            })
+            ->orWhere(function ($query) use ($partner) {
+                $query->where('user_one', $partner['id'])
+                    ->where('user_two', Auth::id());
+            })
+            ->first();
+
+        if (!$chat) {
+            $chat = Chat::create([
                 'user_one' => Auth::id(),
                 'user_two' => $partner['id']
             ]);
+        }
+
+        return response()->json(['chat_id' => $chat->id]);
     }
 
     public function getMessages(Request $request, string $id)
@@ -125,13 +138,20 @@ class HomeController extends Controller
         if (!$canAccessChat)
             return response()->json(['message' => 'The selected chat is invalid.'], 400);
 
+        $parnterId = $chat->user_one === Auth::id() ? $chat->user_two : $chat->user_one;
+
         $messages = Message::query()
             ->where('chat_id', $chat->id)
             ->join('users', 'users.id', 'messages.user_id')
-            ->select(['messages.user_id', 'messages.chat_id', 'messages.created_at', 'messages.message', 'messages.status AS message_status', 'messages.id', 'users.name', 'users.email', 'users.status AS user_status', 'users.last_seen'])
+            ->select(['messages.user_id', 'messages.created_at', 'messages.message', 'messages.status', 'messages.id'])
             ->orderBy('messages.created_at')
             ->get();
 
-        return response()->json(['messages' => $messages]);
+        $partnerData = User::query()
+            ->where('id', $parnterId)
+            ->select(['id', 'name', 'email', 'status', 'last_seen'])
+            ->first();
+
+        return response()->json(['messages' => $messages, 'partner' => $partnerData, 'chat_id' => $chat->id]);
     }
 }

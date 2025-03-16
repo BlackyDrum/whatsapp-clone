@@ -75,8 +75,12 @@ const startNewChat = (email) => {
         .post('/chat/start', {
             email: email,
         })
-        .then(() => {
+        .then((response) => {
             showChat.value = true;
+
+            router.reload({ only: ['chats'] });
+
+            handleChatSelection(response.data.chat_id);
         })
         .catch((error) => {
             toast.add({
@@ -101,24 +105,12 @@ const handleChatSelection = (id) => {
             currentChat.value.messages = [];
             currentChat.value.id = null;
 
+            currentChat.value.id = response.data.chat_id;
+            currentChat.value.partner = response.data.partner;
+
             const messages = response.data.messages;
-            currentChat.value.id = messages[0].chat_id;
-
-            currentChat.value.partner = {
-                name: messages[0].name,
-                email: messages[0].email,
-                status: messages[0].user_status,
-                last_seen: messages[0].last_seen,
-            };
-
             for (const message of messages) {
-                currentChat.value.messages.push({
-                    message: message.message,
-                    created_at: message.created_at,
-                    user_id: message.user_id,
-                    status: message.message_status,
-                    id: message.id,
-                });
+                currentChat.value.messages.push(message);
             }
 
             showChat.value = true;
@@ -309,7 +301,7 @@ function formatTimestamp(timestamp) {
                             </div>
                             <div>
                                 <p class="text-md font-bold text-white">{{ currentChat.partner.name }}</p>
-                                <p class="text-sm text-gray-400">TODO: last seen today at 14:46</p>
+                                <p class="text-sm text-gray-400">last seen {{ formatTimeFromTimestamp(currentChat.partner.last_seen) }}</p>
                             </div>
                         </div>
                     </div>
