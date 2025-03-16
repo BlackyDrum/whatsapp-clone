@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Chat } from '@/types';
-import { router } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import { nextTick, Ref, ref } from 'vue';
 
 import axios from 'axios';
@@ -13,6 +13,7 @@ import Toast from 'primevue/toast';
 import { useToast } from 'primevue/usetoast';
 
 const toast = useToast();
+const page = usePage();
 
 const showContacts = ref(false);
 
@@ -147,6 +148,10 @@ const sendMessage = () => {
         })
         .then((response) => {
             currentChat.value.messages.push(response.data.message);
+
+            const chat = page.props.chats.find((chat) => chat.id === currentChat.value.id);
+            chat.last_message = response.data.message.message;
+            chat.last_message_created_at = response.data.message.created_at;
         })
         .catch((error) => {
             toast.add({
