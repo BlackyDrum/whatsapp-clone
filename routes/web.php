@@ -15,6 +15,7 @@ Route::middleware(['auth', UpdateUserLastSeen::class])->group(function () {
     Route::post('/chat/message', [HomeController::class, 'sendMessage'])->name('chat.message.send');
 
     Route::patch('/user-status', [HomeController::class, 'updateUserStatus'])->name('user.status.update');
+    Route::patch('/message-status', [HomeController::class, 'updateMessageStatus'])->name('message.status.update');
 });
 
 require __DIR__ . '/auth.php';

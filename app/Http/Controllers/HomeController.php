@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\ChatStarted;
+use App\Events\MessageRead;
 use App\Events\MessageSent;
 use App\Events\UserStatusChange;
 use App\MessageStatus;
@@ -185,7 +186,7 @@ class HomeController extends Controller
                 'user_id' => Auth::id(),
                 'message' => $validated['message'],
                 'chat_id' => $chat->id,
-                'status' => MessageStatus::Sent
+                'status' => MessageStatus::Delivered
             ])
             ->only(['id', 'message', 'created_at', 'status', 'user_id', 'chat_id']);
 
@@ -207,5 +208,27 @@ class HomeController extends Controller
             ]);
 
         broadcast(new UserStatusChange(Auth::id(), $validated['active']))->toOthers();
+    }
+
+    public function updateMessageStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'message_id' => 'required|numeric|exists:messages,id'
+        ]);
+
+        $message = Message::find($validated['message_id']);
+        $user = User::find($message->user_id);
+        $chat = Chat::find($message->chat_id);
+
+        $canAccessChat = ($chat->user_one === Auth::id() || $chat->user_two === Auth::id()) && $user->id !== Auth::id();
+
+        if (!$canAccessChat)
+            return response()->json(['message' => 'You are not authorized to do this action.'], 403);
+
+        $message->update([
+            'status' => MessageStatus::Read
+        ]);
+
+        broadcast(new MessageRead($message->fresh()))->toOthers();
     }
 }
