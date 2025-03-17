@@ -53,6 +53,10 @@ onBeforeMount(() => {
             setupMessageListener(e);
         });
     });
+
+    document.addEventListener('visibilitychange', function () {
+        handleVisibilityChange();
+    });
 });
 
 function setupMessageListener(e: any) {
@@ -74,12 +78,28 @@ function setupMessageListener(e: any) {
     }
 }
 
+function handleVisibilityChange() {
+    if (document.hidden) {
+        axios.patch('/user-status', {
+            active: false,
+        });
+    } else {
+        axios.patch('/user-status', {
+            active: true,
+        });
+    }
+}
+
 onBeforeUnmount(() => {
     window.Echo.leave(`chat.start.user.${page.props.auth.user.id}`);
 
     for (const chat of page.props.chats) {
         window.Echo.leave(`chat.${chat.id}`);
     }
+
+    document.removeEventListener('visibilitychange', function () {
+        handleVisibilityChange();
+    });
 });
 
 const handleContactListToggle = () => {
@@ -163,6 +183,8 @@ const handleChatSelection = (id: number) => {
     axios
         .get(`/chat/${id}/messages`)
         .then((response) => {
+            window.Echo.leave(`status.user.${currentChat.value.partner?.id}`);
+
             currentChat.value.partner = null;
             currentChat.value.messages = [];
             currentChat.value.id = null;
@@ -170,6 +192,10 @@ const handleChatSelection = (id: number) => {
             currentChat.value.id = response.data.chat_id;
             currentChat.value.partner = response.data.partner;
             currentChat.value.messages.push(...response.data.messages);
+
+            window.Echo.private(`status.user.${currentChat.value.partner?.id}`).listen('UserStatusChange', (e: any) => {
+                if (currentChat.value.partner) currentChat.value.partner.status = e.active ? 'online' : 'offline';
+            });
 
             showChat.value = true;
 
@@ -418,7 +444,10 @@ function formatTimestamp(timestamp: Date): string {
                             </div>
                             <div>
                                 <p class="text-md font-bold text-white">{{ currentChat.partner?.name }}</p>
-                                <p class="text-sm text-gray-400">last seen {{ formatTimestamp(currentChat.partner?.last_seen || new Date()) }}</p>
+                                <p v-if="currentChat.partner?.status === 'offline'" class="text-sm text-gray-400">
+                                    last seen {{ formatTimestamp(currentChat.partner?.last_seen || new Date()) }}
+                                </p>
+                                <p v-else class="text-sm text-green-400">Online</p>
                             </div>
                         </div>
                     </div>

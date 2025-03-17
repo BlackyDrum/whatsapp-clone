@@ -13,6 +13,8 @@ Route::middleware(['auth', UpdateUserLastSeen::class])->group(function () {
     Route::post('/chat/start', [HomeController::class, 'startChat'])->name('chat.start');
     Route::get('/chat/{id}/messages', [HomeController::class, 'getMessages'])->name('chat.messages.get');
     Route::post('/chat/message', [HomeController::class, 'sendMessage'])->name('chat.message.send');
+
+    Route::patch('/user-status', [HomeController::class, 'updateUserStatus'])->name('user.status.update');
 });
 
 require __DIR__ . '/auth.php';

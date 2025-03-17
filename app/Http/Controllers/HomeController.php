@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Events\ChatStarted;
 use App\Events\MessageSent;
+use App\Events\UserStatusChange;
 use App\MessageStatus;
 use App\Models\Chat;
 use App\Models\Message;
 use App\Models\User;
 use App\Models\UserHasContact;
+use App\UserStatus;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -184,5 +186,20 @@ class HomeController extends Controller
         broadcast(new MessageSent($message))->toOthers();
 
         return response()->json(['message' => $message]);
+    }
+
+    public function updateUserStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'active' => 'required|boolean'
+        ]);
+
+        User::query()
+            ->find(Auth::id())
+            ->update([
+                'status' => $validated['active'] ? UserStatus::Online : UserStatus::Offline
+            ]);
+
+        broadcast(new UserStatusChange(Auth::id(), $validated['active']))->toOthers();
     }
 }
