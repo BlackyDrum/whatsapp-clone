@@ -17,13 +17,11 @@ class UpdateUserLastSeen
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check()) {
-            User::query()
-                ->find(Auth::id())
-                ->update([
-                    'last_seen' => now()
-                ]);
-        }
+        User::query()
+            ->find(Auth::id())
+            ->update([
+                'last_seen' => now()
+            ]);
 
         return $next($request);
     }
