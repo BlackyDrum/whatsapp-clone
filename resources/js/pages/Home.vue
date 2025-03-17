@@ -194,7 +194,7 @@ const handleChatSelection = (id: number) => {
             currentChat.value.messages.push(...response.data.messages);
 
             window.Echo.private(`status.user.${currentChat.value.partner?.id}`).listen('UserStatusChange', (e: any) => {
-                if (currentChat.value.partner) currentChat.value.partner.status = e.active ? 'online' : 'offline';
+                if (currentChat.value.partner) currentChat.value.partner.is_active = e.active;
             });
 
             showChat.value = true;
@@ -444,7 +444,7 @@ function formatTimestamp(timestamp: Date): string {
                             </div>
                             <div>
                                 <p class="text-md font-bold text-white">{{ currentChat.partner?.name }}</p>
-                                <p v-if="currentChat.partner?.status === 'offline'" class="text-sm text-gray-400">
+                                <p v-if="!currentChat.partner?.is_active" class="text-sm text-gray-400">
                                     last seen {{ formatTimestamp(currentChat.partner?.last_seen || new Date()) }}
                                 </p>
                                 <p v-else class="text-sm text-green-400">Online</p>

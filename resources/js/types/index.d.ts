@@ -38,7 +38,7 @@ export interface User {
 export type BreadcrumbItemType = BreadcrumbItem;
 
 export interface Chat {
-    partner: { id: number; name: string; email: string; status: string; last_seen: Date } | null;
+    partner: { id: number; name: string; email: string; is_active: boolean; last_seen: Date } | null;
     messages: { id: number; message: string; created_at: Date; user_id: number; status: string }[];
     id: number | null;
 }

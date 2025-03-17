@@ -24,7 +24,7 @@ class HomeController extends Controller
         $contacts = UserHasContact::query()
             ->where('user_id', Auth::id())
             ->join('users', 'users.id', 'user_has_contacts.contact_id')
-            ->select(['users.name', 'users.email', 'users.status', 'users.about', 'users.last_seen'])
+            ->select(['users.name', 'users.email', 'users.is_active', 'users.about', 'users.last_seen'])
             ->orderBy('users.name')
             ->get()
             ->each(function ($item, $index) {
@@ -154,7 +154,7 @@ class HomeController extends Controller
 
         $partnerData = User::query()
             ->where('id', $parnterId)
-            ->select(['id', 'name', 'email', 'status', 'last_seen'])
+            ->select(['id', 'name', 'email', 'is_active', 'last_seen'])
             ->first();
 
         return response()->json(['messages' => $messages, 'partner' => $partnerData, 'chat_id' => $chat->id]);
@@ -197,7 +197,7 @@ class HomeController extends Controller
         User::query()
             ->find(Auth::id())
             ->update([
-                'status' => $validated['active'] ? UserStatus::Online : UserStatus::Offline
+                'is_active' => $validated['active']
             ]);
 
         broadcast(new UserStatusChange(Auth::id(), $validated['active']))->toOthers();
