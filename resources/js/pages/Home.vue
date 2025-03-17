@@ -63,6 +63,22 @@ onBeforeMount(() => {
     });
 });
 
+onBeforeUnmount(() => {
+    window.Echo.leave(`chat.start.user.${page.props.auth.user.id}`);
+
+    for (const chat of page.props.chats) {
+        window.Echo.leave(`chat.${chat.id}`);
+    }
+
+    document.removeEventListener('visibilitychange', function () {
+        handleVisibilityChange();
+    });
+
+    window.removeEventListener('beforeunload', function () {
+        handleVisibilityChange(true);
+    });
+});
+
 function setupMessageListener(e: any) {
     if (e.message.user_id === page.props.auth.user.id) return;
 
@@ -93,22 +109,6 @@ function handleVisibilityChange(exit = false) {
         });
     }
 }
-
-onBeforeUnmount(() => {
-    window.Echo.leave(`chat.start.user.${page.props.auth.user.id}`);
-
-    for (const chat of page.props.chats) {
-        window.Echo.leave(`chat.${chat.id}`);
-    }
-
-    document.removeEventListener('visibilitychange', function () {
-        handleVisibilityChange();
-    });
-
-    window.removeEventListener('beforeunload', function () {
-        handleVisibilityChange(true);
-    });
-});
 
 const handleContactListToggle = () => {
     showContacts.value = !showContacts.value;
