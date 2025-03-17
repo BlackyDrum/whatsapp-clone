@@ -328,7 +328,7 @@ function formatTimestamp(timestamp: Date): string {
                     </form>
                 </div>
             </div>
-            <div v-if="showContacts" class="aside-messages grow">
+            <div v-if="showContacts" class="aside-messages grow select-none">
                 <div
                     class="message cursor-pointer border-gray-700 px-4 py-3 text-gray-300 hover:bg-gray-600/50"
                     @click="showAddNewContactDialog = true"
