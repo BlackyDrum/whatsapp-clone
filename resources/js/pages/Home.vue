@@ -57,6 +57,10 @@ onBeforeMount(() => {
     document.addEventListener('visibilitychange', function () {
         handleVisibilityChange();
     });
+
+    window.addEventListener('beforeunload', function () {
+        handleVisibilityChange(true);
+    });
 });
 
 function setupMessageListener(e: any) {
@@ -78,8 +82,8 @@ function setupMessageListener(e: any) {
     }
 }
 
-function handleVisibilityChange() {
-    if (document.hidden) {
+function handleVisibilityChange(exit = false) {
+    if (document.hidden || exit) {
         axios.patch('/user-status', {
             active: false,
         });
@@ -99,6 +103,10 @@ onBeforeUnmount(() => {
 
     document.removeEventListener('visibilitychange', function () {
         handleVisibilityChange();
+    });
+
+    window.removeEventListener('beforeunload', function () {
+        handleVisibilityChange(true);
     });
 });
 

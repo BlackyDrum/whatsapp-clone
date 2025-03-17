@@ -52,6 +52,12 @@ class HomeController extends Controller
             ->sortByDesc('last_message_created_at')
             ->values();
 
+        Auth::user()->update([
+            'is_active' => true
+        ]);
+
+        broadcast(new UserStatusChange(Auth::id(), true))->toOthers();
+
         return Inertia::render('Home', [
             'contacts' => $contacts,
             'chats' => $chats
