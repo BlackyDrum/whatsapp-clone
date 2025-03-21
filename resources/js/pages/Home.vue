@@ -510,8 +510,8 @@ function formatTimestamp(timestamp: Date): string {
                             <span class="inline-block select-none text-xs text-gray-200/70">{{ formatTimeFromTimestamp(message.created_at) }}</span>
                             <span
                                 v-if="message.user_id === $page.props.auth.user.id"
-                                class="relative top-[3px] inline-block select-none text-xs text-gray-200/70"
-                                :class="{ 'text-blue-400': message.status === 'read' }"
+                                class="relative top-[3px] inline-block select-none text-xs text-blue-400"
+                                :class="{ 'text-gray-200/70': message.status !== 'read' }"
                             >
                                 <svg viewBox="0 0 16 11" height="11" width="16" preserveAspectRatio="xMidYMid meet" class="" fill="none">
                                     <title>{{ message.status }}</title>
