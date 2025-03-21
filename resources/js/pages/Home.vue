@@ -117,16 +117,16 @@ function setupMessageListener(e: any) {
     }
 }
 
+let timeoutId: number;
 function handleVisibilityChange(exit = false) {
-    if (document.hidden || exit) {
-        axios.patch('/user-status', {
-            active: false,
-        });
-    } else {
-        axios.patch('/user-status', {
-            active: true,
-        });
-    }
+    clearTimeout(timeoutId);
+
+    timeoutId = setTimeout(() => {
+        axios
+            .patch('/user-status', { active: !document.hidden && !exit })
+            .then(() => console.log('Status updated'))
+            .catch((err) => console.error('Error updating status', err));
+    }, 2000);
 }
 
 const handleContactListToggle = () => {
@@ -231,9 +231,11 @@ const handleChatSelection = (id: number) => {
             const unreadMessages = currentChat.value.messages.filter(
                 (message) => message.status !== 'read' && message.user_id !== page.props.auth.user.id,
             );
-            axios.patch('/message-status', {
-                message_ids: unreadMessages.map((message) => message.id),
-            });
+
+            if (unreadMessages.length > 0)
+                axios.patch('/message-status', {
+                    message_ids: unreadMessages.map((message) => message.id),
+                });
 
             showChat.value = true;
 
