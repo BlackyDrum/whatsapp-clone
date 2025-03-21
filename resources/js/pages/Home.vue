@@ -108,7 +108,7 @@ function setupMessageListener(e: any) {
         currentChat.value.messages.push(e.message);
 
         axios.patch('/message-status', {
-            message_id: e.message.id,
+            message_ids: [e.message.id],
         });
 
         nextTick(() => {
@@ -231,11 +231,9 @@ const handleChatSelection = (id: number) => {
             const unreadMessages = currentChat.value.messages.filter(
                 (message) => message.status !== 'read' && message.user_id !== page.props.auth.user.id,
             );
-            for (const message of unreadMessages) {
-                axios.patch('/message-status', {
-                    message_id: message.id,
-                });
-            }
+            axios.patch('/message-status', {
+                message_ids: unreadMessages.map((message) => message.id),
+            });
 
             showChat.value = true;
 

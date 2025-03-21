@@ -213,22 +213,25 @@ class HomeController extends Controller
     public function updateMessageStatus(Request $request)
     {
         $validated = $request->validate([
-            'message_id' => 'required|numeric|exists:messages,id'
+            'message_ids' => 'array|required|min:1',
+            'message_ids.*' => 'required|numeric|exists:messages,id'
         ]);
 
-        $message = Message::find($validated['message_id']);
-        $user = User::find($message->user_id);
-        $chat = Chat::find($message->chat_id);
+        foreach ($validated['message_ids'] as $messageId) {
+            $message = Message::find($messageId);
+            $user = User::find($message->user_id);
+            $chat = Chat::find($message->chat_id);
 
-        $canAccessChat = ($chat->user_one === Auth::id() || $chat->user_two === Auth::id()) && $user->id !== Auth::id();
+            $canAccessChat = ($chat->user_one === Auth::id() || $chat->user_two === Auth::id()) && $user->id !== Auth::id();
 
-        if (!$canAccessChat)
-            return response()->json(['message' => 'You are not authorized to do this action.'], 403);
+            if (!$canAccessChat)
+                return response()->json(['message' => 'You are not authorized to do this action.'], 403);
 
-        $message->update([
-            'status' => MessageStatus::Read
-        ]);
+            $message->update([
+                'status' => MessageStatus::Read
+            ]);
 
-        broadcast(new MessageRead($message->fresh()))->toOthers();
+            broadcast(new MessageRead($message->fresh()))->toOthers();
+        }
     }
 }
