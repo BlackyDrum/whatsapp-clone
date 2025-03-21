@@ -122,10 +122,7 @@ function handleVisibilityChange(exit = false) {
     clearTimeout(timeoutId);
 
     timeoutId = setTimeout(() => {
-        axios
-            .patch('/user-status', { active: !document.hidden && !exit })
-            .then(() => console.log('Status updated'))
-            .catch((err) => console.error('Error updating status', err));
+        axios.patch('/user-status', { active: !document.hidden && !exit });
     }, 2000);
 }
 
