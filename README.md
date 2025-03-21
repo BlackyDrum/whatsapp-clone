@@ -45,19 +45,13 @@ $ php artisan migrate
 $ npm install
 ```
 
-8. Start the Websocket Server:
-
-```
-$ php artisan reverb:start
-```
-
-9. Run the `composer dev` command:
+8. Run the `composer dev` command:
 
 ```
 $ composer dev
 ```
 
-10. Visit `http://localhost:8000` in your web browser to access the application.
+9. Visit `http://localhost:8000` in your web browser to access the application.
 
 ### Real-time Setup
 
@@ -66,6 +60,11 @@ This project uses Laravel Reverb for real-time messaging. Ensure you set up your
 REVERB_APP_ID=
 REVERB_APP_KEY=
 REVERB_APP_SECRET=
+```
+After that, make sure to start the Websocket Server:
+
+```
+$ php artisan reverb:start
 ```
 
 ### License
