@@ -51,8 +51,6 @@ $ npm install
 $ composer dev
 ```
 
-9. Visit `http://localhost:8000` in your web browser to access the application.
-
 ### Real-time Setup
 
 This project uses Laravel Reverb for real-time messaging. Ensure you set up your `.env` file with:
@@ -66,6 +64,8 @@ After that, make sure to start the Websocket Server:
 ```
 $ php artisan reverb:start
 ```
+
+Visit `http://localhost:8000` in your web browser to access the application.
 
 ### License
 This project is licensed under the MIT License.
