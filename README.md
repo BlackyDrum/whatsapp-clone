@@ -4,7 +4,7 @@
 
 ---
 
-### Installation
+## Installation
 Follow these steps to get the project up and running on your local machine:
 
 1. Clone the repository:
@@ -67,5 +67,5 @@ $ php artisan reverb:start
 
 Visit `http://localhost:8000` in your web browser to access the application.
 
-### License
+## License
 This project is licensed under the MIT License.
