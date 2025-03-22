@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Chat } from '@/types';
-import { router, usePage } from '@inertiajs/vue3';
-import { nextTick, onBeforeMount, onBeforeUnmount, Ref, ref } from 'vue';
+import { Head, router, usePage } from '@inertiajs/vue3';
+import { nextTick, onBeforeMount, onBeforeUnmount, onMounted, Ref, ref } from 'vue';
 
 import axios from 'axios';
 
@@ -34,6 +34,12 @@ const currentMessage = ref(null);
 
 const messageInput = ref();
 const messageBody = ref();
+
+const newChats = ref(0);
+
+onMounted(() => {
+    newChats.value = page.props.chats.filter((chat: Chat) => chat.unread_messages > 0).length;
+});
 
 onBeforeMount(() => {
     axios.defaults.headers.common['X-Socket-ID'] = window.Echo.socketId();
@@ -100,7 +106,10 @@ function setupMessageListener(e: any) {
     const chat = page.props.chats.find((chat: Chat) => chat.id === e.message.chat_id);
     chat.last_message = e.message.message;
     chat.last_message_created_at = e.message.created_at;
-    if (currentChat.value.id !== e.message.chat_id) chat.unread_messages++;
+    if (currentChat.value.id !== e.message.chat_id) {
+        chat.unread_messages++;
+        newChats.value = page.props.chats.filter((chat: Chat) => chat.unread_messages > 0).length;
+    }
 
     page.props.chats.splice(page.props.chats.indexOf(chat), 1);
     page.props.chats.unshift(chat);
@@ -224,6 +233,7 @@ const handleChatSelection = (id: number) => {
 
             const chat = page.props.chats.find((chat: Chat) => chat.id === currentChat.value.id);
             chat.unread_messages = 0;
+            newChats.value = page.props.chats.filter((chat: Chat) => chat.unread_messages > 0).length;
 
             window.Echo.private(`status.user.${currentChat.value.partner?.id}`).listen('UserStatusChange', (e: any) => {
                 if (currentChat.value.partner) currentChat.value.partner.is_active = e.active;
@@ -344,6 +354,8 @@ function formatTimestamp(timestamp: Date): string {
 
 <template>
     <Toast />
+
+    <Head :title="newChats > 0 ? `(${newChats.toString()})` : ''" />
 
     <!-- Source Code for frontend: https://codepen.io/macridgway23/pen/rNMgRgY -->
 
