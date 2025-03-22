@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { Chat } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { nextTick, onBeforeMount, onBeforeUnmount, onMounted, Ref, ref } from 'vue';
+import { nextTick, onBeforeMount, onBeforeUnmount, onMounted, onUnmounted, Ref, ref } from 'vue';
+
+import 'emoji-picker-element';
 
 import axios from 'axios';
 
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
+import Popover from 'primevue/popover';
 import Toast from 'primevue/toast';
 
 import { useToast } from 'primevue/usetoast';
@@ -30,15 +33,56 @@ const currentChat: Ref<Chat> = ref({
 });
 
 const isSendingMessage = ref(false);
-const currentMessage = ref(null);
+const currentMessage = ref('');
 
 const messageInput = ref();
 const messageBody = ref();
 
 const newChats = ref(0);
 
+const emojiPopover = ref();
+
 onMounted(() => {
     newChats.value = page.props.chats.filter((chat: Chat) => chat.unread_messages > 0).length;
+
+    let emojiPicker: HTMLElement | null = null;
+    let emojiClickHandler: ((event: any) => void) | null = null;
+
+    const observer = new MutationObserver(() => {
+        const newEmojiPicker = document.querySelector('emoji-picker');
+
+        if (newEmojiPicker && newEmojiPicker !== emojiPicker) {
+            // Remove old event listener if it exists
+            if (emojiPicker && emojiClickHandler) {
+                emojiPicker.removeEventListener('emoji-click', emojiClickHandler);
+            }
+
+            // Update reference
+            emojiPicker = newEmojiPicker;
+            emojiClickHandler = (event: any) => {
+                currentMessage.value += event.detail.emoji.unicode;
+            };
+
+            // Attach new event listener
+            emojiPicker.addEventListener('emoji-click', emojiClickHandler);
+        }
+
+        // If emojiPicker is removed
+        if (!newEmojiPicker && emojiPicker) {
+            emojiPicker.removeEventListener('emoji-click', emojiClickHandler!);
+            emojiPicker = null;
+            emojiClickHandler = null;
+        }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    onUnmounted(() => {
+        observer.disconnect();
+        if (emojiPicker && emojiClickHandler) {
+            emojiPicker.removeEventListener('emoji-click', emojiClickHandler);
+        }
+    });
 });
 
 onBeforeMount(() => {
@@ -135,6 +179,10 @@ function handleVisibilityChange(exit = false) {
         axios.patch('/user-status', { active: !document.hidden && !exit });
     }, 2000);
 }
+
+const toggleEmojiPicker = (event) => {
+    emojiPopover.value.toggle(event);
+};
 
 const handleContactListToggle = () => {
     showContacts.value = !showContacts.value;
@@ -267,7 +315,7 @@ const handleChatSelection = (id: number) => {
 };
 
 const sendMessage = () => {
-    if (isSendingMessage.value || !currentMessage.value) return;
+    if (isSendingMessage.value || currentMessage.value.length === 0) return;
 
     isSendingMessage.value = true;
 
@@ -298,7 +346,7 @@ const sendMessage = () => {
         .finally(() => {
             isSendingMessage.value = false;
 
-            currentMessage.value = null;
+            currentMessage.value = '';
 
             nextTick(() => {
                 messageInput.value.focus();
@@ -546,8 +594,11 @@ function formatTimestamp(timestamp: Date): string {
             </div>
             <div class="main-footer sticky bottom-0 left-0 right-0 text-gray-400">
                 <div class="flex items-center px-4 py-1">
+                    <Popover ref="emojiPopover">
+                        <emoji-picker></emoji-picker>
+                    </Popover>
                     <div class="flex-none">
-                        <span class="pi pi-face-smile -mt-1 inline h-6 w-6 cursor-pointer"> </span>
+                        <span @click="toggleEmojiPicker" class="pi pi-face-smile -mt-1 inline h-6 w-6 cursor-pointer"> </span>
                         <span class="pi pi-paperclip -mt-1 ml-2 inline h-6 w-6 cursor-pointer"> </span>
                     </div>
                     <div class="flex-grow">
