@@ -2,6 +2,8 @@
 
 <p>A real-time chat application inspired by WhatsApp, built using Vue.js, Inertia.js, Laravel, and PrimeVue.</p>
 
+![screen](https://github.com/user-attachments/assets/4ff81b76-c12b-4ef1-9301-3ea6c3b0386d)
+
 ---
 
 ## Installation
