@@ -47,6 +47,11 @@ class HomeController extends Controller
 
                 $chat->last_message = $lastMessage?->message;
                 $chat->last_message_created_at = $lastMessage?->created_at;
+                $chat->unread_messages = Message::query()
+                    ->where('chat_id', $chat->id)
+                    ->where('user_id', '!=', Auth::id())
+                    ->where('status', MessageStatus::Delivered)
+                    ->count();
 
                 return $chat;
             })

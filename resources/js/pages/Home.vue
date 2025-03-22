@@ -100,6 +100,7 @@ function setupMessageListener(e: any) {
     const chat = page.props.chats.find((chat: Chat) => chat.id === e.message.chat_id);
     chat.last_message = e.message.message;
     chat.last_message_created_at = e.message.created_at;
+    if (currentChat.value.id !== e.message.chat_id) chat.unread_messages++;
 
     page.props.chats.splice(page.props.chats.indexOf(chat), 1);
     page.props.chats.unshift(chat);
@@ -220,6 +221,9 @@ const handleChatSelection = (id: number) => {
             currentChat.value.id = response.data.chat_id;
             currentChat.value.partner = response.data.partner;
             currentChat.value.messages.push(...response.data.messages);
+
+            const chat = page.props.chats.find((chat: Chat) => chat.id === currentChat.value.id);
+            chat.unread_messages = 0;
 
             window.Echo.private(`status.user.${currentChat.value.partner?.id}`).listen('UserStatusChange', (e: any) => {
                 if (currentChat.value.partner) currentChat.value.partner.is_active = e.active;
@@ -459,6 +463,9 @@ function formatTimestamp(timestamp: Date): string {
                         <span class="absolute right-0 top-0 mt-1 text-xs">{{
                             chat.last_message_created_at ? formatTimestamp(chat.last_message_created_at) : ''
                         }}</span>
+                        <span v-if="chat.unread_messages > 0" class="absolute bottom-0 right-0 mt-1 text-xs text-green-400">
+                            {{ chat.unread_messages }} new
+                        </span>
                     </div>
                 </div>
             </div>
