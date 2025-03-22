@@ -648,4 +648,8 @@ function formatTimestamp(timestamp: Date): string {
     max-width: calc(100vw - 40px);
     word-break: break-word;
 }
+
+.p-popover-content {
+    padding: 0 !important;
+}
 </style>
