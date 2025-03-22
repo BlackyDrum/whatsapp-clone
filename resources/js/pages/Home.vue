@@ -1,7 +1,6 @@
-<script setup lang="ts">
-import { Chat } from '@/types';
+<script setup>
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { nextTick, onBeforeMount, onBeforeUnmount, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { nextTick, onBeforeMount, onBeforeUnmount, onMounted, onUnmounted, ref } from 'vue';
 
 import 'emoji-picker-element';
 
@@ -28,7 +27,7 @@ const isAddingNewContact = ref(false);
 
 const isStartingNewChat = ref(false);
 const showChat = ref(false);
-const currentChat: Ref<Chat> = ref({
+const currentChat = ref({
     partner: null,
     messages: [],
     id: null,
@@ -45,10 +44,10 @@ const newChats = ref(0);
 const emojiPopover = ref();
 
 onMounted(() => {
-    newChats.value = page.props.chats.filter((chat: Chat) => chat.unread_messages > 0).length;
+    newChats.value = page.props.chats.filter((chat) => chat.unread_messages > 0).length;
 
-    let emojiPicker: HTMLElement | null = null;
-    let emojiClickHandler: ((event: any) => void) | null = null;
+    let emojiPicker = null;
+    let emojiClickHandler = null;
 
     const observer = new MutationObserver(() => {
         const newEmojiPicker = document.querySelector('emoji-picker');
@@ -61,7 +60,7 @@ onMounted(() => {
 
             // Update reference
             emojiPicker = newEmojiPicker;
-            emojiClickHandler = (event: any) => {
+            emojiClickHandler = (event) => {
                 currentMessage.value += event.detail.emoji.unicode;
             };
 
@@ -71,7 +70,7 @@ onMounted(() => {
 
         // If emojiPicker is removed
         if (!newEmojiPicker && emojiPicker) {
-            emojiPicker.removeEventListener('emoji-click', emojiClickHandler!);
+            emojiPicker.removeEventListener('emoji-click', emojiClickHandler);
             emojiPicker = null;
             emojiClickHandler = null;
         }
@@ -93,23 +92,23 @@ onBeforeMount(() => {
     // Handle incoming messages
     for (const chat of page.props.chats) {
         window.Echo.private(`chat.${chat.id}`)
-            .listen('MessageSent', (e: any) => {
+            .listen('MessageSent', (e) => {
                 setupMessageListener(e);
             })
-            .listen('MessageRead', (e: any) => {
+            .listen('MessageRead', (e) => {
                 setupMessageStatusChange(e);
             });
     }
 
     // Handle incoming chat creations from other users
-    window.Echo.private(`chat.start.user.${page.props.auth.user.id}`).listen('ChatStarted', (e: any) => {
+    window.Echo.private(`chat.start.user.${page.props.auth.user.id}`).listen('ChatStarted', (e) => {
         router.reload({ only: ['chats'] });
 
         window.Echo.private(`chat.${e.chat.id}`)
-            .listen('MessageSent', (e: any) => {
+            .listen('MessageSent', (e) => {
                 setupMessageListener(e);
             })
-            .listen('MessageRead', (e: any) => {
+            .listen('MessageRead', (e) => {
                 setupMessageStatusChange(e);
             });
     });
@@ -139,22 +138,22 @@ onBeforeUnmount(() => {
     });
 });
 
-function setupMessageStatusChange(e: any) {
+function setupMessageStatusChange(e) {
     if (currentChat.value.id === e.message.chat_id) {
         const message = currentChat.value.messages.find((message) => message.id === e.message.id);
         if (message) message.status = 'read';
     }
 }
 
-function setupMessageListener(e: any) {
+function setupMessageListener(e) {
     if (e.message.user_id === page.props.auth.user.id) return;
 
-    const chat = page.props.chats.find((chat: Chat) => chat.id === e.message.chat_id);
+    const chat = page.props.chats.find((chat) => chat.id === e.message.chat_id);
     chat.last_message = e.message.message;
     chat.last_message_created_at = e.message.created_at;
     if (currentChat.value.id !== e.message.chat_id) {
         chat.unread_messages++;
-        newChats.value = page.props.chats.filter((chat: Chat) => chat.unread_messages > 0).length;
+        newChats.value = page.props.chats.filter((chat) => chat.unread_messages > 0).length;
     }
 
     page.props.chats.splice(page.props.chats.indexOf(chat), 1);
@@ -173,7 +172,7 @@ function setupMessageListener(e: any) {
     }
 }
 
-let timeoutId: number;
+let timeoutId;
 function handleVisibilityChange(exit = false) {
     clearTimeout(timeoutId);
 
@@ -224,7 +223,7 @@ const handleAddNewContact = () => {
         });
 };
 
-const startNewChat = (email: string) => {
+const startNewChat = (email) => {
     if (isStartingNewChat.value) return;
 
     isStartingNewChat.value = true;
@@ -240,10 +239,10 @@ const startNewChat = (email: string) => {
                 router.reload({ only: ['chats'] });
 
                 window.Echo.private(`chat.${response.data.chat_id}`)
-                    .listen('MessageSent', (e: any) => {
+                    .listen('MessageSent', (e) => {
                         setupMessageListener(e);
                     })
-                    .listen('MessageRead', (e: any) => {
+                    .listen('MessageRead', (e) => {
                         setupMessageStatusChange(e);
                     });
             }
@@ -265,7 +264,7 @@ const startNewChat = (email: string) => {
         });
 };
 
-const handleChatSelection = (id: number) => {
+const handleChatSelection = (id) => {
     if (currentChat.value.id === id) return;
 
     axios
@@ -281,11 +280,11 @@ const handleChatSelection = (id: number) => {
             currentChat.value.partner = response.data.partner;
             currentChat.value.messages.push(...response.data.messages);
 
-            const chat = page.props.chats.find((chat: Chat) => chat.id === currentChat.value.id);
+            const chat = page.props.chats.find((chat) => chat.id === currentChat.value.id);
             chat.unread_messages = 0;
-            newChats.value = page.props.chats.filter((chat: Chat) => chat.unread_messages > 0).length;
+            newChats.value = page.props.chats.filter((chat) => chat.unread_messages > 0).length;
 
-            window.Echo.private(`status.user.${currentChat.value.partner?.id}`).listen('UserStatusChange', (e: any) => {
+            window.Echo.private(`status.user.${currentChat.value.partner?.id}`).listen('UserStatusChange', (e) => {
                 if (currentChat.value.partner) currentChat.value.partner.is_active = e.active;
             });
 
@@ -329,7 +328,7 @@ const sendMessage = () => {
         .then((response) => {
             currentChat.value.messages.push(response.data.message);
 
-            const chat = page.props.chats.find((chat: Chat) => chat.id === currentChat.value.id);
+            const chat = page.props.chats.find((chat) => chat.id === currentChat.value.id);
             chat.last_message = response.data.message.message;
             chat.last_message_created_at = response.data.message.created_at;
 
