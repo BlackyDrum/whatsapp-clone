@@ -8,6 +8,8 @@ import axios from 'axios';
 
 import { formatTimeFromTimestamp, formatTimestamp } from '@/lib/utils';
 
+import LoadingScreen from '@/components/app/LoadingScreen.vue';
+
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
@@ -18,6 +20,9 @@ import { useToast } from 'primevue/usetoast';
 
 const toast = useToast();
 const page = usePage();
+
+const isInitialized = ref(false);
+const loadingValue = ref(0);
 
 const showContacts = ref(false);
 
@@ -86,6 +91,15 @@ onMounted(() => {
             emojiPicker.removeEventListener('emoji-click', emojiClickHandler);
         }
     });
+
+    const interval = setInterval(() => {
+        loadingValue.value += Math.floor(Math.random() * 70) + 1;
+
+        if (loadingValue.value > 125) {
+            clearInterval(interval);
+            isInitialized.value = true;
+        }
+    }, 1000);
 });
 
 onBeforeMount(() => {
@@ -403,8 +417,9 @@ const fetchMoreMessagesOnScroll = () => {
 
     <!-- Source Code for frontend: https://codepen.io/macridgway23/pen/rNMgRgY -->
 
-    <!-- Only optimized for viewing on desktop -->
-    <div class="flex h-screen w-full bg-black">
+    <LoadingScreen v-if="!isInitialized" :loadingValue="loadingValue" />
+
+    <div v-else class="flex h-screen w-full bg-black">
         <aside
             class="relative flex w-[22rem] shrink-0 flex-col overflow-y-auto border-r border-gray-800 bg-gray-200 md:w-[30rem] lg:w-[35rem] xl:w-[40rem]"
         >
