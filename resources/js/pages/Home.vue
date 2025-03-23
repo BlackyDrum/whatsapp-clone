@@ -569,7 +569,7 @@ function scrollToBottom() {
                                 <div class="relative text-gray-600 focus-within:text-gray-200">
                                     <input
                                         ref="messageInput"
-                                        class="message-input w-full rounded-full bg-gray-700 py-3 pl-5 text-sm text-white focus:bg-gray-600/50 focus:outline-none"
+                                        class="message-input w-full select-none rounded-full bg-gray-700 py-3 pl-5 text-sm text-white focus:bg-gray-600/50 focus:outline-none"
                                         placeholder="Type a message"
                                         autocomplete="off"
                                         v-model="currentMessage"
@@ -580,7 +580,13 @@ function scrollToBottom() {
                         </div>
                     </div>
                     <div class="flex-none text-right">
-                        <span :class="{ 'pi pi-spin pi-spinner': isSendingMessage }" class="inline cursor-pointer" style="font-size: x-large"> </span>
+                        <span
+                            @click="sendMessage"
+                            :class="{ 'pi pi-spin pi-spinner': isSendingMessage }"
+                            class="pi pi-send mt-2 inline cursor-pointer"
+                            style="font-size: x-large"
+                        >
+                        </span>
                     </div>
                 </div>
             </div>
