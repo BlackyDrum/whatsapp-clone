@@ -176,7 +176,7 @@ class HomeController extends Controller
     {
         $validated = $request->validate([
             'chat_id' => 'required|numeric|exists:chats,id',
-            'message' => 'required|string|max:1024'
+            'message' => 'required|string|max:4096'
         ]);
 
         $chat = Chat::query()->find($validated['chat_id']);
