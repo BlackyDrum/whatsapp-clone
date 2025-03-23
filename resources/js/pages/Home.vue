@@ -543,7 +543,7 @@ const fetchMoreMessagesOnScroll = () => {
         </aside>
         <div v-if="!showChat" class="flex w-full bg-[#222E35]">
             <div class="m-auto flex flex-col items-center gap-4">
-                <div class="pi pi-comments" style="font-size: 8rem"></div>
+                <div class="pi pi-whatsapp" style="font-size: 5rem"></div>
                 <div class="text-sm text-gray-200">
                     WhatsApp Clone - <a class="underline" href="https://github.com/BlackyDrum/whatsapp-clone">Github</a>
                 </div>
