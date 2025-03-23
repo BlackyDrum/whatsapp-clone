@@ -43,6 +43,8 @@ const newChats = ref(0);
 
 const emojiPopover = ref();
 
+const hasMoreMessages = ref(true);
+
 onMounted(() => {
     newChats.value = page.props.chats.filter((chat) => chat.unread_messages > 0).length;
 
@@ -272,6 +274,8 @@ const handleChatSelection = (id) => {
         .then((response) => {
             window.Echo.leave(`status.user.${currentChat.value.partner?.id}`);
 
+            hasMoreMessages.value = true;
+
             currentMessage.value = '';
 
             currentChat.value.partner = null;
@@ -362,6 +366,34 @@ const sendMessage = () => {
 function scrollToBottom() {
     messageBody.value.scrollTo(0, messageBody.value.scrollHeight);
 }
+
+const handleMessagesScroll = () => {
+    if (!hasMoreMessages.value) return;
+
+    if (messageBody.value.scrollTop === 0) {
+        axios
+            .get(`/chat/${currentChat.value.id}/messages?offset=${currentChat.value.messages.length}`)
+            .then((response) => {
+                const previousScrollHeight = messageBody.value.scrollHeight;
+
+                currentChat.value.messages.unshift(...response.data.messages);
+
+                hasMoreMessages.value = response.data.messages.length > 0;
+
+                nextTick(() => {
+                    messageBody.value.scrollTo(0, messageBody.value.scrollHeight - previousScrollHeight);
+                });
+            })
+            .catch((error) => {
+                toast.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: error.response.data.message ?? error.response.data,
+                    life: 5000,
+                });
+            });
+    }
+};
 </script>
 
 <template>
@@ -502,7 +534,13 @@ function scrollToBottom() {
                 </div>
             </div>
         </div>
-        <main v-else ref="messageBody" id="messageBody" class="bg-whatsapp relative flex w-full flex-col overflow-y-auto">
+        <main
+            v-else
+            ref="messageBody"
+            id="messageBody"
+            class="bg-whatsapp relative flex w-full flex-col overflow-y-auto"
+            @scroll="handleMessagesScroll"
+        >
             <div class="main-header sticky left-0 right-0 top-0 z-40 text-gray-400">
                 <div class="flex items-center px-4 py-3">
                     <div class="flex-1 truncate">

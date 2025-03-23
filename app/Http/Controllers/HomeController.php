@@ -161,8 +161,13 @@ class HomeController extends Controller
         $messages = Message::query()
             ->where('chat_id', $chat->id)
             ->select(['messages.user_id', 'messages.created_at', 'messages.message', 'messages.status', 'messages.id'])
-            ->orderBy('messages.created_at')
-            ->get();
+            ->orderBy('messages.created_at', 'desc')
+            ->limit(20)
+            ->offset($request->query('offset', 0))
+            ->get()
+            ->sortBy('created_at')
+            ->values();
+
 
         $partnerData = User::query()
             ->where('id', $parnterId)
