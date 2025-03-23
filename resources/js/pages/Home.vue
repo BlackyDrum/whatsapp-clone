@@ -367,7 +367,7 @@ function scrollToBottom() {
     messageBody.value.scrollTo(0, messageBody.value.scrollHeight);
 }
 
-const handleMessagesScroll = () => {
+const fetchMoreMessagesOnScroll = () => {
     if (!hasMoreMessages.value) return;
 
     if (messageBody.value.scrollTop === 0) {
@@ -539,7 +539,7 @@ const handleMessagesScroll = () => {
             ref="messageBody"
             id="messageBody"
             class="bg-whatsapp relative flex w-full flex-col overflow-y-auto"
-            @scroll="handleMessagesScroll"
+            @scroll="fetchMoreMessagesOnScroll"
         >
             <div class="main-header sticky left-0 right-0 top-0 z-40 text-gray-400">
                 <div class="flex items-center px-4 py-3">
