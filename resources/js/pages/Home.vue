@@ -272,6 +272,8 @@ const handleChatSelection = (id) => {
         .then((response) => {
             window.Echo.leave(`status.user.${currentChat.value.partner?.id}`);
 
+            currentMessage.value = '';
+
             currentChat.value.partner = null;
             currentChat.value.messages = [];
             currentChat.value.id = null;
