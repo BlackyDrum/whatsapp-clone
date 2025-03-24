@@ -53,6 +53,73 @@ const hasMoreMessages = ref(true);
 onMounted(() => {
     newChats.value = page.props.chats.filter((chat) => chat.unread_messages > 0).length;
 
+    setupEmojiPicker();
+
+    // Simulate loading
+    const interval = setInterval(() => {
+        loadingValue.value += Math.floor(Math.random() * 70) + 1;
+
+        if (loadingValue.value > 125) {
+            clearInterval(interval);
+            isInitialized.value = true;
+        }
+    }, 1000);
+});
+
+onBeforeMount(() => {
+    axios.defaults.headers.common['X-Socket-ID'] = window.Echo.socketId();
+
+    // Handle incoming messages
+    for (const chat of page.props.chats) {
+        window.Echo.private(`chat.${chat.id}`)
+            .listen('MessageSent', (e) => {
+                setupMessageListener(e);
+            })
+            .listen('MessageRead', (e) => {
+                setupMessageStatusChange(e);
+            });
+    }
+
+    // Handle incoming chat creations from other users
+    window.Echo.private(`chat.start.user.${page.props.auth.user.id}`).listen('ChatStarted', (e) => {
+        router.reload({ only: ['chats'] });
+
+        window.Echo.private(`chat.${e.chat.id}`)
+            .listen('MessageSent', (e) => {
+                setupMessageListener(e);
+            })
+            .listen('MessageRead', (e) => {
+                setupMessageStatusChange(e);
+            });
+    });
+
+    // Handle user status changes
+    document.addEventListener('visibilitychange', function () {
+        handleVisibilityChange();
+    });
+
+    window.addEventListener('beforeunload', function () {
+        handleVisibilityChange(true);
+    });
+});
+
+onBeforeUnmount(() => {
+    window.Echo.leave(`chat.start.user.${page.props.auth.user.id}`);
+
+    for (const chat of page.props.chats) {
+        window.Echo.leave(`chat.${chat.id}`);
+    }
+
+    document.removeEventListener('visibilitychange', function () {
+        handleVisibilityChange();
+    });
+
+    window.removeEventListener('beforeunload', function () {
+        handleVisibilityChange(true);
+    });
+});
+
+function setupEmojiPicker() {
     let emojiPicker = null;
     let emojiClickHandler = null;
 
@@ -91,68 +158,7 @@ onMounted(() => {
             emojiPicker.removeEventListener('emoji-click', emojiClickHandler);
         }
     });
-
-    const interval = setInterval(() => {
-        loadingValue.value += Math.floor(Math.random() * 70) + 1;
-
-        if (loadingValue.value > 125) {
-            clearInterval(interval);
-            isInitialized.value = true;
-        }
-    }, 1000);
-});
-
-onBeforeMount(() => {
-    axios.defaults.headers.common['X-Socket-ID'] = window.Echo.socketId();
-
-    // Handle incoming messages
-    for (const chat of page.props.chats) {
-        window.Echo.private(`chat.${chat.id}`)
-            .listen('MessageSent', (e) => {
-                setupMessageListener(e);
-            })
-            .listen('MessageRead', (e) => {
-                setupMessageStatusChange(e);
-            });
-    }
-
-    // Handle incoming chat creations from other users
-    window.Echo.private(`chat.start.user.${page.props.auth.user.id}`).listen('ChatStarted', (e) => {
-        router.reload({ only: ['chats'] });
-
-        window.Echo.private(`chat.${e.chat.id}`)
-            .listen('MessageSent', (e) => {
-                setupMessageListener(e);
-            })
-            .listen('MessageRead', (e) => {
-                setupMessageStatusChange(e);
-            });
-    });
-
-    document.addEventListener('visibilitychange', function () {
-        handleVisibilityChange();
-    });
-
-    window.addEventListener('beforeunload', function () {
-        handleVisibilityChange(true);
-    });
-});
-
-onBeforeUnmount(() => {
-    window.Echo.leave(`chat.start.user.${page.props.auth.user.id}`);
-
-    for (const chat of page.props.chats) {
-        window.Echo.leave(`chat.${chat.id}`);
-    }
-
-    document.removeEventListener('visibilitychange', function () {
-        handleVisibilityChange();
-    });
-
-    window.removeEventListener('beforeunload', function () {
-        handleVisibilityChange(true);
-    });
-});
+}
 
 function setupMessageStatusChange(e) {
     if (currentChat.value.id === e.message.chat_id) {
